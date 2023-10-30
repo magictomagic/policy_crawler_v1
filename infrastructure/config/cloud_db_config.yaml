@@ -1,0 +1,14 @@
+connections:
+  default:
+    engine: "tortoise.backends.asyncpg"
+    credentials:
+      host: "db.zdwttowkfmoweqxrimyr.supabase.co"
+      port: "5432"
+      user: "${DB_USER}"
+      password: "${DB_PASSWORD}"
+      database: "${DB_NAME}"
+
+apps:
+  models:
+    models: ["infrastructure.entity.policy"]
+    default_connection: "default"
