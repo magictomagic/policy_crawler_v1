@@ -17,6 +17,12 @@ DDD
 - [ ] db redesign to contain: region, openapi summary, picture
 - [ ] different feed via params such as: `.../zhejiang/feed`
 
+- [ ] multimedia download
+``` txt
+image download:
+    https://fzggw.zj.gov.cn/art/2022/9/1/art_1599545_58934718.html 
+    https://fzggw.zj.gov.cn/art/2022/11/1/art_1599545_58935041.html 
+```
 
 # License
 GPL
