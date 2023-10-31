@@ -1,7 +1,9 @@
 import json
+from contextlib import asynccontextmanager
 from logging.handlers import RotatingFileHandler
 from fastapi.responses import Response
-
+import asyncio
+from pyppeteer import launch
 import uvicorn
 import yaml
 from fastapi import FastAPI
@@ -13,17 +15,13 @@ my_host = "127.0.0.1"
 my_port = 8000
 
 app = FastAPI()
-db_config = None
+
 with open("infrastructure/config/local_db_config.yaml", "r") as file:
     db_config = yaml.safe_load(file)
 register_tortoise(app,
                   config=db_config,
                   add_exception_handlers=True,
                   generate_schemas=True)
-log_config = None
-with open('infrastructure/config/log_conf.yaml', 'r') as f:
-    log_config = yaml.safe_load(f)
-
 
 @app.get("/fetchfzggw")
 async def get_fzggw_info():
@@ -51,5 +49,7 @@ async def say_hello(name: str):
 if __name__ == "__main__":
     module_name = __name__.split(".")[0]
     app_name = "app"
-
+    log_config = None
+    with open('infrastructure/config/log_conf.yaml', 'r') as f:
+        log_config = yaml.safe_load(f)
     uvicorn.run(f"{module_name}:{app_name}", host=my_host, port=my_port, reload=True, log_config=log_config)

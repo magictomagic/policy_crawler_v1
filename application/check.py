@@ -4,8 +4,9 @@ from feedgenerator import Atom1Feed
 from datetime import datetime
 
 from domain.rule.detail_filter.raw2detail import r2d_fzggw_1
-from domain.rule.rule_compose import aurl2abstract_models, aurl2detail_models
-from domain.rule.mapping.abstract_mapping import fzggw_filter_rule, test_filter_rule
+from domain.rule.rule_compose import aurl2detail_models, aurl2abstract_models1
+from domain.rule.mapping.abstract_mapping import lishui_filter_rule, \
+    filter_rule_fzggw
 from infrastructure.entity.policy import NewsAbstract, NewsDetail
 import logging
 
@@ -16,7 +17,7 @@ async def check_inert_abstracts(mapping_rule: dict):
     logger.info("mapping_rule: " + str(mapping_rule))
     stored_abstract_list, online_abstract_list = await asyncio.gather(
         NewsAbstract.filter(abstract_entrance=mapping_rule.get("url")),
-        aurl2abstract_models(**mapping_rule)
+        aurl2abstract_models1(**mapping_rule)
     )
     isto_update_abstract_list = list(set(online_abstract_list) - set(stored_abstract_list))
     if len(isto_update_abstract_list) == 0:
@@ -34,13 +35,21 @@ async def inert_details(news_abstracts: list[NewsAbstract], raw2detail: Callable
 
 
 async def test111():
-    model = await aurl2abstract_models(**fzggw_filter_rule)
-    await NewsAbstract.bulk_create(model)
+    model = await aurl2abstract_models1(**lishui_filter_rule)
+    await asyncio.gather(NewsAbstract.bulk_create(model))
+    # print(model)
+    # if model is not None:
+    #     await NewsAbstract.bulk_create(model)
+    # else:
+    #     print("No models to create.")
+    return
+    # await NewsAbstract.bulk_create(model)
 
 
 async def test_on_get():
+
     # await check_inert_abstracts(test_filter_rule)
-    await check_inert_abstracts(fzggw_filter_rule)
+    await check_inert_abstracts(filter_rule_fzggw)
 
 
 async def show_atom3():
@@ -50,7 +59,7 @@ async def show_atom3():
         description="A feed of news abstracts.",
         language="en",
     )
-    news_abstracts = await NewsAbstract.filter(abstract_entrance=fzggw_filter_rule.get("url"))
+    news_abstracts = await NewsAbstract.filter(abstract_entrance=filter_rule_fzggw.get("url"))
     for news in news_abstracts:
         feed.add_item(
             title=news.title,

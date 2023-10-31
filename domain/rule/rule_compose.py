@@ -1,11 +1,11 @@
 import asyncio
-from typing import Callable
+from typing import Callable, Coroutine, Awaitable
 import httpx
 import bs4.element
 import logging
-from domain.rule.abstract_filter.json2obj import construct_absolute_url
 from infrastructure.config.field_name import pg_href, pg_abstract_entrance
 from infrastructure.entity.policy import NewsAbstract, NewsDetail
+from urllib.parse import urljoin, urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -14,60 +14,25 @@ headers = {
 }
 
 
-def compose2dict(raw_response_text: str,
-                 raw2pro: Callable[[str], bs4.element.Tag],
-                 pro2raw_list: Callable[[bs4.element.Tag], list[bs4.element.Tag]],
-                 raw2json: Callable[[bs4.element.Tag], dict]) -> list[dict]:
-    processible_tag = raw2pro(raw_response_text)
-    raw_list = pro2raw_list(processible_tag)
-    abstr_entrance_list = []
-    for raw in raw_list:
-        abstr_json = raw2json(raw)
-        abstr_entrance_list.append(abstr_json)
-    return abstr_entrance_list
+def construct_absolute_url(base, link):
+    # First, check if the link is already an absolute URL
+    if bool(urlparse(link).netloc):
+        return link
+
+    # If not, join the base URL with the relative link to create the absolute URL
+    return urljoin(base, link)
 
 
-def url2model(url: str,
-              raw2pro: Callable[[str], bs4.element.Tag],
-              pro2raw_list: Callable[[bs4.element.Tag], list[bs4.element.Tag]],
-              raw2json: Callable[[bs4.element.Tag], dict]) -> list[NewsAbstract]:
-    response = httpx.get(url, headers=headers)
-    response.encoding = 'utf-8'
-    abstr_entrance_list = compose2dict(response.text, raw2pro, pro2raw_list, raw2json)
+async def aurl2abstract_models1(url: str,
+                                afetch_content: Callable[[str], Awaitable[str]],
+                                parse_content: Callable[[str], list[dict]]) -> list[NewsAbstract]:
+    abstr_entrance_list = parse_content(await afetch_content(url))
     news_abstract_list = []
     for abstr_entrance in abstr_entrance_list:
         abstr_entrance[pg_href] = construct_absolute_url(url, abstr_entrance[pg_href])
         abstr_entrance[pg_abstract_entrance] = url
         news_abstract_list.append(NewsAbstract(**abstr_entrance))
-
-    print(abstr_entrance_list)
-    print(len(abstr_entrance_list))
     return news_abstract_list
-
-
-async def aurl2abstract_models(url: str,
-                               raw2pro: Callable[[str], bs4.element.Tag],
-                               pro2raw_list: Callable[[bs4.element.Tag], list[bs4.element.Tag]],
-                               raw2json: Callable[[bs4.element.Tag], dict]) -> list[NewsAbstract]:
-    """
-    rule config at domain/rule/abstract_filter
-
-    :param url:
-    :param raw2pro:
-    :param pro2raw_list:
-    :param raw2json:
-    :return:
-    """
-    async with httpx.AsyncClient(http2=True) as client:
-        response = await client.get(url, headers=headers)
-        response.encoding = 'utf-8'
-        abstr_entrance_list = compose2dict(response.text, raw2pro, pro2raw_list, raw2json)
-        news_abstract_list = []
-        for abstr_entrance in abstr_entrance_list:
-            abstr_entrance[pg_href] = construct_absolute_url(url, abstr_entrance[pg_href])
-            abstr_entrance[pg_abstract_entrance] = url
-            news_abstract_list.append(NewsAbstract(**abstr_entrance))
-        return news_abstract_list
 
 
 async def aurl2detail_model(url: str,
@@ -83,7 +48,6 @@ async def aurl2detail_model(url: str,
         response = await client.get(url, headers=headers)
         response.encoding = 'utf-8'
         dtl = raw2dtl(response.text)
-        logger.info("url", url)
         return NewsDetail(**dtl, href=url)
 
 
@@ -91,7 +55,3 @@ async def aurl2detail_models(urls: list[str],
                              raw2dtl: Callable[[str], dict]) -> list[NewsDetail]:
     tasks = [aurl2detail_model(url, raw2dtl) for url in urls]
     return await asyncio.gather(*tasks)
-
-
-def compose2model(json2obj: Callable[[dict], NewsAbstract]) -> NewsAbstract:
-    pass

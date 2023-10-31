@@ -12,5 +12,11 @@ DDD
 
 - [ ] pdm - too new, wait for years
 
+
+## TODO
+- [ ] db redesign to contain: region, openapi summary, picture
+- [ ] different feed via params such as: `.../zhejiang/feed`
+
+
 # License
 GPL
