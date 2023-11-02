@@ -1,19 +1,22 @@
 import asyncio
-from typing import Callable
-from feedgenerator import Atom1Feed
-from datetime import datetime
-
-from domain.rule.detail_filter.raw2detail import r2d_fzggw_1
-from domain.rule.rule_compose import aurl2detail_models, aurl2abstract_models1
-from domain.rule.mapping.abstract_mapping import lishui_filter_rule, \
-    filter_rule_fzggw
-from infrastructure.entity.policy import NewsAbstract, NewsDetail
 import logging
+from datetime import datetime
+from typing import Callable
+
+from feedgenerator import Atom1Feed
+from tortoise.transactions import atomic
+
+from domain.rule.detail_filter.raw2detail import r2d_jinhua
+from domain.rule.mapping.abstract_mapping import filter_rule_lishui, \
+    filter_rule_fzggw, filter_rule_jinhua
+from domain.rule.rule_compose import aurl2detail_models, aurl2abstract_models1
+from infrastructure.entity.policy import NewsAbstract, NewsDetail
 
 logger = logging.getLogger(__name__)
 
 
-async def check_inert_abstracts(mapping_rule: dict):
+@atomic()
+async def check_inert_abstracts(mapping_rule: dict, detail_rule: Callable[[str], dict]):
     logger.info("mapping_rule: " + str(mapping_rule))
     stored_abstract_list, online_abstract_list = await asyncio.gather(
         NewsAbstract.filter(abstract_entrance=mapping_rule.get("url")),
@@ -24,7 +27,7 @@ async def check_inert_abstracts(mapping_rule: dict):
         return None
     await asyncio.gather(
         NewsAbstract.bulk_create(isto_update_abstract_list),
-        inert_details(isto_update_abstract_list, r2d_fzggw_1)
+        inert_details(isto_update_abstract_list, detail_rule)
     )
     return isto_update_abstract_list
 
@@ -35,7 +38,7 @@ async def inert_details(news_abstracts: list[NewsAbstract], raw2detail: Callable
 
 
 async def test111():
-    model = await aurl2abstract_models1(**lishui_filter_rule)
+    model = await aurl2abstract_models1(**filter_rule_lishui)
     await asyncio.gather(NewsAbstract.bulk_create(model))
     # print(model)
     # if model is not None:
@@ -49,7 +52,9 @@ async def test111():
 async def test_on_get():
 
     # await check_inert_abstracts(test_filter_rule)
-    await check_inert_abstracts(filter_rule_fzggw)
+    # await check_inert_abstracts(filter_rule_fzggw, r2d_fzggw_1)
+    # await check_inert_abstracts(filter_rule_lishui, r2d_lishui)
+    await check_inert_abstracts(filter_rule_jinhua, r2d_jinhua)
 
 
 async def show_atom3():
