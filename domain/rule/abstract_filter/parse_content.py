@@ -31,6 +31,13 @@ def parse_content_jinhua(content: str) -> list[dict]:
     return list_raw2dict(data_content)
 
 
+def parse_content_jiaxing(content: str) -> list[dict]:
+    soup = BeautifulSoup(content, 'lxml-xml')
+    ancestor_div = soup.find(name='div', id='5623865')
+    data_content = ancestor_div.find_all('record')
+    return list_raw2dict(data_content)
+
+
 def list_raw2dict(data_list: list[bs4.element.Tag]) -> list[dict]:
     result = []
     for item in data_list:

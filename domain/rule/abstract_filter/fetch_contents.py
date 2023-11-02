@@ -37,6 +37,13 @@ async def fetch_content_jinhua(url: str) -> str:
     return response.text
 
 
+async def fetch_content_jiaxing(url: str) -> str:
+    async with httpx.AsyncClient(http2=True) as client:
+        response = await client.get(url, headers=headers)
+        response.encoding = 'utf-8'
+    return response.text
+
+
 if __name__ == '__main__':
     # run first to download core
     asyncio.run(fetch_content_lishui(

@@ -6,9 +6,9 @@ from typing import Callable
 from feedgenerator import Atom1Feed
 from tortoise.transactions import atomic
 
-from domain.rule.detail_filter.raw2detail import r2d_jinhua
+from domain.rule.detail_filter.raw2detail import r2d_jiaxing
 from domain.rule.mapping.abstract_mapping import filter_rule_lishui, \
-    filter_rule_fzggw, filter_rule_jinhua
+    filter_rule_fzggw, filter_rule_jiaxing
 from domain.rule.rule_compose import aurl2detail_models, aurl2abstract_models1
 from infrastructure.entity.policy import NewsAbstract, NewsDetail
 
@@ -54,7 +54,8 @@ async def test_on_get():
     # await check_inert_abstracts(test_filter_rule)
     # await check_inert_abstracts(filter_rule_fzggw, r2d_fzggw_1)
     # await check_inert_abstracts(filter_rule_lishui, r2d_lishui)
-    await check_inert_abstracts(filter_rule_jinhua, r2d_jinhua)
+    # await check_inert_abstracts(filter_rule_jinhua, r2d_jinhua)
+    await check_inert_abstracts(filter_rule_jiaxing, r2d_jiaxing)
 
 
 async def show_atom3():

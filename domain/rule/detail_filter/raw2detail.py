@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from infrastructure.config.field_name import PG_MAX_DETAIL_CONTENT_LENGTH
+from infrastructure.config.field_name import PG_MAX_DETAIL_CONTENT_LENGTH, PG_MAX_DETAIL_TITLE_LENGTH
 
 
 def r2d_fzggw_1(raw: str) -> dict:
@@ -47,5 +47,21 @@ def r2d_jinhua(raw: str) -> dict:
         content = content_element.text.strip()
     return {
         "title": title,
+        "content": content[:PG_MAX_DETAIL_CONTENT_LENGTH - 1]
+    }
+
+
+def r2d_jiaxing(raw: str) -> dict:
+    soup = BeautifulSoup(raw, 'lxml')
+    title_element = soup.find('head').find('title')
+    title = "title not extracted"
+    if title_element:
+        title = title_element.text.strip()
+    content_element = soup.find(id='zoom')
+    content = "content not extracted"
+    if content_element:
+        content = content_element.text.strip()
+    return {
+        "title": title[:PG_MAX_DETAIL_TITLE_LENGTH - 1],
         "content": content[:PG_MAX_DETAIL_CONTENT_LENGTH - 1]
     }
