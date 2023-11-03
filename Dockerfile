@@ -10,8 +10,11 @@ COPY . /app
 # Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Define /log as a mount point
+VOLUME /log
+
 # Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Run Uvicorn server when the container launches
+# Run Uvicorn server with custom log configuration when the container launches
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-config", "infrastructure/config/log_conf.yaml"]
