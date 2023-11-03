@@ -49,3 +49,5 @@ htmlcov/
 
 venv/
 infrastructure/config/local_*.yaml
+
+log/
